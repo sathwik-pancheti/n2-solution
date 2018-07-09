@@ -2,7 +2,13 @@ package com.stackroute.keepnote.dao;
 
 import java.util.List;
 
+import javax.persistence.Query;
+import javax.transaction.Transactional;
+
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import com.stackroute.keepnote.model.Note;
 
@@ -15,15 +21,26 @@ import com.stackroute.keepnote.model.Note;
  * 					transaction. The database transaction happens inside the scope of a persistence 
  * 					context.  
  * */
-
+@Repository
+@Transactional
 public class NoteDAOImpl implements NoteDAO {
 
 	/*
 	 * Autowiring should be implemented for the SessionFactory.
 	 */
+	@Autowired
+	SessionFactory sessionFactory;
 
 	public NoteDAOImpl(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
 
+	public SessionFactory getSessionFactory() {
+		return sessionFactory;
+	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
 	}
 
 	/*
@@ -31,8 +48,14 @@ public class NoteDAOImpl implements NoteDAO {
 	 */
 
 	public boolean saveNote(Note note) {
-		return false;
-
+//		Session session = sessionFactory.openSession();
+//		session.beginTransaction();
+//		session.save(note);
+//		session.getTransaction().commit();
+//		session.close();
+		sessionFactory.getCurrentSession().save(note);
+	    sessionFactory.getCurrentSession().flush();
+		return true;
 	}
 
 	/*
@@ -40,8 +63,20 @@ public class NoteDAOImpl implements NoteDAO {
 	 */
 
 	public boolean deleteNote(int noteId) {
-		return false;
-
+		if(getNoteById(noteId)==null) {
+			return false;
+		} else {
+			//Session session = sessionFactory.openSession();
+			//session.beginTransaction();
+//			session.delete(getNoteById(noteId));
+//			session.getTransaction().commit();
+//			session.close();
+			Session session = sessionFactory.getCurrentSession();
+			Note note = (Note)session.load(Note.class,noteId);
+			session.delete(note);
+			
+			return true;
+		}
 	}
 
 	/*
@@ -49,7 +84,9 @@ public class NoteDAOImpl implements NoteDAO {
 	 * order(showing latest note first)
 	 */
 	public List<Note> getAllNotes() {
-		return null;
+		String abc = "FROM Note note ORDER BY note.createdAt DESC";
+		Query query = getSessionFactory().getCurrentSession().createQuery(abc);
+		return query.getResultList();
 
 	}
 
@@ -57,15 +94,30 @@ public class NoteDAOImpl implements NoteDAO {
 	 * retrieve specific note from the database(note) table
 	 */
 	public Note getNoteById(int noteId) {
-		return null;
-
+		Session session = sessionFactory.getCurrentSession();
+		//session.beginTransaction();
+		Note note = (Note)session.get(Note.class, noteId);
+		//session.getTransaction().commit();
+		//session.close();
+		return note;
 	}
 
 	/* Update existing note */
 
 	public boolean UpdateNote(Note note) {
-		return false;
-
+		if(getNoteById(note.getNoteId())==null) {
+			return false;
+		} else {
+//			Session session = sessionFactory.openSession();
+//			session.beginTransaction();
+//			session.update(note);
+//			session.getTransaction().commit();
+//			session.close();
+			sessionFactory.getCurrentSession().clear();
+	        sessionFactory.getCurrentSession().update(note);
+	        sessionFactory.getCurrentSession().flush();
+			return true;
+		}
 	}
 
 }
