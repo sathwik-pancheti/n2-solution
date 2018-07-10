@@ -37,6 +37,10 @@ public class NoteController {
 	@Autowired
 	private NoteDAO noteDao;
 
+	public NoteController(NoteDAO noteDao2) {
+		// TODO Auto-generated constructor stub
+	}
+
 	/*
 	 * Define a handler method to read the existing notes from the database and add
 	 * it to the ModelMap which is an implementation of Map, used when building
